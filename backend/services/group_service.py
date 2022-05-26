@@ -23,7 +23,7 @@ class GroupService:
             prefference_uuid = PrefferenceRepository.get_prefference_uuid(prefference_name)
             
             # check if the prefference is already inserted in DB 
-            user_prefference = UserPrefferenceRepository.get_prefference_by_name(prefference_name)
+            user_prefference = UserPrefferenceRepository.get_prefference_by_name_and_uuid_user(prefference_name, logged_in_user_uuid)
 
             if user_prefference == None: 
                 # build the data if the prefference has not been yet saved

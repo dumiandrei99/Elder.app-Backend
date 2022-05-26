@@ -14,7 +14,7 @@ class UserInGroup(models.Model):
     uuid_user = models.ForeignKey(
         User, 
         on_delete = models.CASCADE, 
-        related_name = 'uuid_user'
+        related_name = 'uuid_user_group'
     )
 
     uuid_group = models.ForeignKey(

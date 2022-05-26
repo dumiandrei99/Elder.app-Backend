@@ -14,7 +14,7 @@ class UserPrefference(models.Model):
     uuid_user = models.ForeignKey(
         User, 
         on_delete = models.CASCADE, 
-        related_name = 'uuid_user'
+        related_name = 'uuid_user_prefference'
     )
 
     uuid_prefference = models.ForeignKey(
