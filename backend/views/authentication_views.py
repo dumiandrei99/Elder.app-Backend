@@ -16,7 +16,7 @@ class LogInView(APIView):
     def post(self, request):
         data = JSONParser().parse(request)
         user_service = UserService()
-        response = user_service.user_login(data)
+        response = user_service.user_login(data, request)
 
         if type(response) is dict:
             return Response(response)

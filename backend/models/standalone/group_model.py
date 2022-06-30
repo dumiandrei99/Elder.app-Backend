@@ -10,6 +10,7 @@ class Group(models.Model):
     )
 
     group_name = models.CharField(max_length = 100)
+    group_description = models.CharField(max_length = 350)
 
     REQUIRED_FIELDS = []
     class Meta:

@@ -1,6 +1,8 @@
+from tokenize import group
 from ..repositories.user_prefference_repository import UserPrefferenceRepository
 from ..repositories.user_repository import UserRepository
 from ..repositories.user_in_group_repository import UserInGroupRepository
+from ..repositories.group_repository import GroupRepository
 import pandas as pd
 
 
@@ -79,7 +81,8 @@ class RecommendService:
         groups_similar_users_are_in = df_users_in_groups[df_users_in_groups.userUUID.isin(similar_users_uuids)]
         groups_similar_users_are_in = list(groups_similar_users_are_in.loc[:,'group_name'])
         
-        # count the appearances of each group and save it in a dictionary (the more appearances the more likely the user is to join that group)
+        # count the appearances of each group (how many similar users are in that specific group)
+        # and save it in a dictionary (the more appearances the more likely the user is to join that group)
         groups_to_recommend_to_user = {item:groups_similar_users_are_in.count(item) for item in groups_similar_users_are_in}
         groups_to_recommend_to_user = dict(groups_to_recommend_to_user)
 
@@ -87,5 +90,16 @@ class RecommendService:
         for key in groups_logged_in_user_is_in:
             if key in groups_to_recommend_to_user.keys():
                 del groups_to_recommend_to_user[key]
-                
-        return groups_to_recommend_to_user
+
+        # add the description of the group and build the final result
+        result = []
+        for key in groups_to_recommend_to_user:
+            group_description = GroupRepository.get_group_description(key)
+            group = {
+                'group_name': key,
+                'number_of_appearances': groups_to_recommend_to_user[key],
+                'group_description': group_description
+            }
+            result.append(group)
+        
+        return result

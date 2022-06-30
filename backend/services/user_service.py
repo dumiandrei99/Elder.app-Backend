@@ -7,6 +7,8 @@ from ..validators.registration_validator import RegistrationValidator
 from ..validators.verification_code_validator import VerificationCodeValidator
 from ..validators.login_validator import LoginValidator
 from ..validators.email_validator import EmailValidator
+from ..validators.update_profile_picture_validator import UpdateProfilePictureValidator
+from ..validators.change_password_validator import ChangePasswordValidator
 from django.contrib.auth.hashers import make_password, check_password
 from email.message import EmailMessage
 import jwt, datetime, random, string, os, smtplib, time, threading
@@ -15,7 +17,6 @@ class UserService:
 
     def __devalidate_verification_code(self, verification_code):
         # sleep for 5 minutes before deleting the verification code from the db
-        print("start")
         time.sleep(5 * 60)
         print("done")
         verification_code.delete()
@@ -23,7 +24,6 @@ class UserService:
     def __send_verification_email(self, email_receiver, verification_code):
         email_sender = "dumitrescu549@gmail.com"
         password = os.environ.get('EMAIL')
-        print(password)
         
         email_content = "Password recovery verification code: " + verification_code
         email_content += "\nBe aware, this code is available for only 5 minutes !"
@@ -95,7 +95,7 @@ class UserService:
             return response
     
 
-    def user_login(self, data):
+    def user_login(self, data, request):
         login_validator = LoginValidator()
         is_data_validated = login_validator.validate_login(data)
         
@@ -131,7 +131,7 @@ class UserService:
 
         # transform the logged-in user to a DTO that we send to the frontend
 
-        userDTO = UserDTO(user)
+        userDTO = UserDTO(user, request)
 
         token = jwt.encode(payload, 'secret', algorithm='HS256')
 
@@ -139,6 +139,9 @@ class UserService:
         # return the fact that this is the user's first login
         if user.is_first_login == True :      
             UserRepository.set_first_login_to_false(user)
+            # set it to true in order to return to the frontend the fact that this was the user's first login
+            user.is_first_login = True
+
         
         response = {
             'token': token,
@@ -272,3 +275,91 @@ class UserService:
             "status": "200"
         }
         return response
+
+    def update_profile_picture(self, data):
+        # validate data
+        update_profile_picture_validator = UpdateProfilePictureValidator()
+        is_data_valid = update_profile_picture_validator.validate_profile_picture(data)
+
+        if is_data_valid != None:
+            return is_data_valid
+        
+        username = data['username']
+        user = UserRepository.get_user_by_username(username)
+        profile_picture = data['profile_picture']
+
+        print(profile_picture)
+
+        response = UserRepository.set_profile_picture(user, profile_picture)
+
+        return response
+
+    def change_password(self, data):
+        change_password_validator = ChangePasswordValidator()
+        is_data_valid = change_password_validator.validate_change_password(data)
+
+        if is_data_valid != None:
+            return is_data_valid
+        
+        change_password_type = data['type']
+
+        if change_password_type == 'change_password':
+            username = data['username']
+            user = UserRepository.get_user_by_username(username)
+            old_password = data['old_password']
+            new_password = data['new_password']
+
+            if old_password == new_password:
+                response = {
+                    "message": "Your new password must be different from the old one!",
+                    "status": "253"
+                }
+                return response
+
+            if not check_password(old_password, user.password):
+                response = {
+                    "message": "Your old password is not correct!",
+                    "status": '249'
+                }
+                return response
+
+            if len(new_password) < 6:
+                response = {
+                    "message": "Your new password is too short",
+                    "status": "253"
+                }
+                return response
+
+            new_password = make_password(new_password)
+            UserRepository.save_new_password(user, new_password)
+            return "Password successfully changed !"
+    
+        if change_password_type == 'reset_password':
+            new_password = data['new_password']
+
+            if len(new_password) < 6:
+                response = {
+                    "message": "Your new password is too short",
+                    "status": "253"
+                }
+                return response
+
+            # check if the verification code is still available
+            verification_code_data = data['verification_code']
+            verification_code = VerificationCodeRepository.search_by_verification_code(verification_code_data)
+            
+            if not verification_code:
+                response = {
+                    "message": "The code you have entered expired!",
+                    "status": "253"
+                }
+                return response
+            
+            user_uuid = VerificationCodeRepository.get_user_uuid_by_verification_code(verification_code_data)
+            username = UserRepository.get_username_by_uuid(user_uuid)
+            user = UserRepository.get_user_by_username(username)
+
+            new_password = make_password(new_password)
+            UserRepository.save_new_password(user, new_password)
+
+            return "Password successfully changed !"

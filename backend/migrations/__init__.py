@@ -7,3 +7,6 @@ from ..models.group_related.user_in_group_model import UserInGroup
 from ..models.standalone.activity_model import Activity
 from ..models.activity_related.activity_participants_model import ActivityParticipants
 from ..models.activity_related.user_activity_rating_model import UserActivityRating
+from ..models.standalone.post_model import Post
+from ..models.standalone.comment_model import Comment
+from ..models.standalone.like_model import Like

@@ -23,6 +23,7 @@ class User(AbstractUser):
     last_name = models.CharField(max_length = 255)
     date_of_birth = models.CharField(max_length = 255)
     is_first_login = models.BooleanField(default = True)
+    profile_picture = models.ImageField(null=True, blank=True, upload_to="images/profile/", default = 'null')
 
     REQUIRED_FIELDS = []
 

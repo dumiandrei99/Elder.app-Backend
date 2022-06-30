@@ -27,7 +27,9 @@ SECRET_KEY = 'drj2t!+fg2)$ewja$hfo9n49--7j9d_78^cdwufrv8yay^jx4f'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '192.168.100.7'
+    '192.168.100.7',
+    '172.20.10.7',
+    '192.168.0.154'
 ]
 
 
@@ -42,8 +44,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'backend',
     'rest_framework',
-    'corsheaders'
+    'corsheaders',
+    'django.contrib.sites',
 ]
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -127,6 +132,13 @@ USE_L10N = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+STATICFILES_DIR = (
+    os.path.join(BASE_DIR, 'static')
+)
 AUTH_USER_MODEL = 'backend.User'
 
 CORS_ORIGIN_ALLOW_ALL = True
